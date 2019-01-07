@@ -25,4 +25,4 @@ configuration.o: configuration.cpp def.h
 # 	$(CXX) $(CXXFLAGS) -c communication.cpp 
 
 clean:
-	rm ./*.o
+	rm ./*.o main

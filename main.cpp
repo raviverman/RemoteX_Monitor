@@ -1,18 +1,9 @@
-#include<iostream>
-#include<sys/socket.h>
-#include<arpa/inet.h>
-#include<pthread.h>
-#include<unistd.h>
-#include<signal.h>
-#include<string>
-#include<unordered_map>
+#include "def.h"
+using namespace std;
 
-#include "configuration.cpp"
 
 bool isVerbose = false;
-
-
-using namespace std;
+extern std::unordered_map<string, string> config;
 
 int main(int argc, char const *argv[])
 {

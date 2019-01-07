@@ -1,12 +1,4 @@
-#include<iostream>
-#include<fstream>
-#include<unordered_map>
-#include<string>
-#include<unistd.h>
-#include<cstdio>
-#include<regex>
-
-#define ERROR_OUT stdout
+#include "def.h"
 
 using namespace std;
 
