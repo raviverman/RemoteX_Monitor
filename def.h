@@ -16,6 +16,8 @@
 #include<arpa/inet.h>
 #include<signal.h>
 #include<unordered_map>
+#include<vector>
+#include<fcntl.h>
 
 #define PROCESS_STOPPED 0
 #define PROCESS_RUNNING 1
@@ -24,25 +26,30 @@
 #define R 0
 #define W 1
 
-struct process
-{
-    int pid;
-    char* command;
-    int exit_status;
-    int state;
+#define ISALIVE(x) ((*x == 0))
+typedef int** ping_t;
 
-    // add exec time
-};
+#define CONN_STATE_CON 0
+#define CONN_STATE_DIS 1
+#define CONN_STATE_NOT 2
+#define CONN_STATE_ERR 3
 
-struct monitor_info
+#define CONN_STATE_STR(x) (x==0?"CONNECTED":(x==1?"DISCONNECT":(x==2?"NOTCONNECTED":"CONNECTIONERR")))
+
+struct servers
 {
-    struct sockaddr_in monitor; 
+    char ip[15];
+    int conn_state;
+    char cmd[255];
     int socket;
 };
 
 // Message types
 #define MESS_EXEC_COMM 0
 #define MESS_SEND_STAT 1
+
+#define IP_REGEX "[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+"
+
 
 struct message
 {
@@ -65,6 +72,7 @@ struct response
 int loadDefaultConfig();
 int loadConfig();
 std::string getConfig(std::string configKey);
+int regexMatcher(const char* _string, const char* _regex);
 
 //executer
 // int executeCommandAsync(char* command);
@@ -73,3 +81,11 @@ std::string getConfig(std::string configKey);
 // int startServer();
 // void readMessage(char *buffer, message* m);
 // void writeResponse(response* resp, char* buffer);
+void* ping(void* ip);
+int** pingGroup(char ip[][30], int n);
+int addServer(char* ip);
+int connectServer(int x);
+int connectServer(char* ip);
+// cli
+void printServers();
+

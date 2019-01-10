@@ -90,3 +90,8 @@ int generateDefaultConfig()
     }
     ofile.close();
 }
+
+int regexMatcher(const char* _string, const char* _regex)
+{
+    return regex_match(_string, regex(_regex));
+}
