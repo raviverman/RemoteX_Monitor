@@ -29,7 +29,7 @@ int** pingGroup(char ip[][30], int n)
     return exitStat;
 }
 
-int connectServer(char* ip)
+int connectServer(char* ip, int port)
 {
     sockaddr_in server;
     server.sin_addr.s_addr = inet_addr(ip);
@@ -51,14 +51,15 @@ int connectServer(char* ip)
 int connectServer(int x)
 {
     int ret;
-    if((ret = connectServer(serverList[x]->ip)) > 0)
+    if((ret = connectServer(serverList[x]->ip, serverList[x]->port)) > 0)
         serverList[x]->conn_state = CONN_STATE_CON;
     else
         serverList[x]->conn_state = CONN_STATE_ERR;
+    serverList[x]->socket = ret;
     return ret;
 }
 
-int addServer(char ip[])
+int addServer(const char ip[], int port)
 {
     if(regexMatcher(ip, IP_REGEX)!=1)
         return -1;
@@ -66,9 +67,37 @@ int addServer(char ip[])
     {
         servers* s = ((servers*)malloc(sizeof(servers)));
         sprintf(s->ip,"%s", ip);
+        s->port = port;
         s->conn_state = CONN_STATE_NOT;
         sprintf(s->cmd, "-");
         s->socket = -1;
         serverList.push_back(s);
     }
+}
+
+message* createMessage(int type, const char command[], bool isShellCmd, bool respond)
+{
+    message* m = ((message*)malloc(sizeof(message)));
+    sprintf(m->command,"%s", command);
+    m->isshellcmd = isShellCmd;
+    m->respond = respond;
+    m->type = type;
+    return m;
+}
+
+int sendMessage(int serverNode, message* m)
+{
+    int _socket = serverList[serverNode]->socket;
+    if(_socket < 0)
+    {
+        free(m);
+        return -1;
+    }
+    // save last command run on server
+    sprintf(serverList[serverNode]->cmd, "%s", m->command);
+    char buffer[sizeof(message)];
+    memcpy(buffer, m, sizeof(message));
+    int s =  send(_socket, buffer, sizeof(message), 0);
+    free(m);
+    return s;
 }

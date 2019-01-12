@@ -39,6 +39,7 @@ typedef int** ping_t;
 struct servers
 {
     char ip[15];
+    int port;
     int conn_state;
     char cmd[255];
     int socket;
@@ -49,7 +50,17 @@ struct servers
 #define MESS_SEND_STAT 1
 
 #define IP_REGEX "[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+"
+#define IP_PORT_REGEX "[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+:[0-9]+"
+#define IP_PORT_GROUP "\\s*([\\d.]+):(\\d+).*"
 
+#define COMMAND_SHOW_STATUS "\\s*show\\s+status\\s*"
+#define COMMAND_EXEC_REGEX "\\s*exec\\s*\\d+\\s*\".*\""
+#define COMMAND_EXEC_GROUP "\\s*exec\\s*(\\d+)\\s*\"(.*)\""
+
+#define CLI_PROMPT "$ "
+
+#define CONFIG_FILE "configuration.conf"
+#define SERVERS_FILE "servers.conf"
 
 struct message
 {
@@ -73,6 +84,7 @@ int loadDefaultConfig();
 int loadConfig();
 std::string getConfig(std::string configKey);
 int regexMatcher(const char* _string, const char* _regex);
+int readServerConfig();
 
 //executer
 // int executeCommandAsync(char* command);
@@ -83,9 +95,13 @@ int regexMatcher(const char* _string, const char* _regex);
 // void writeResponse(response* resp, char* buffer);
 void* ping(void* ip);
 int** pingGroup(char ip[][30], int n);
-int addServer(char* ip);
+int addServer(const char* ip, int port);
 int connectServer(int x);
-int connectServer(char* ip);
+int connectServer(char* ip, int port);
+message* createMessage(int type, const char command[], bool isShellCmd, bool respond);
+int sendMessage(int serverNode, message* m);
+
 // cli
 void printServers();
-
+void printMessage(char* message, bool onVerbose=false);
+int commandParser(char command[]);

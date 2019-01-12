@@ -2,7 +2,8 @@
 
 using namespace std;
 
-const string configFile = "configuration.conf";
+const string configFile = CONFIG_FILE;
+static bool defaultConfigLoaded = false;
 
 extern bool isVerbose;
 
@@ -10,9 +11,9 @@ static FILE* file = NULL;
 unordered_map<string, string> defaultConfig;
 unordered_map<string, string> config;
 
-int validateFile()
+int validateFile(const char *fileName)
 {
-    file = fopen(configFile.c_str(), "r");
+    file = fopen(fileName, "r");
     if(file != NULL )
         return true;
     return false;
@@ -24,7 +25,7 @@ int loadDefaultConfig()
     defaultConfig.insert({"PROG","echo"});
     defaultConfig.insert({"ARGS","NO PROGRAM"});
     defaultConfig.insert({"TICK","5"});
-
+    defaultConfigLoaded = true;
 }
 
 int validateKey(string key)
@@ -41,6 +42,7 @@ int validateKey(string key)
 int parseConfig()
 {
     char str[512];
+    printMessage("Loading Configuration..", true);
     ifstream ifile = ifstream(configFile);
     while(!ifile.eof())
     {
@@ -59,11 +61,41 @@ int parseConfig()
     }
 }
 
+
+int readServerConfig()
+{
+    char str[512];
+    printMessage("Loading Server details..", true);
+    if(!validateFile(SERVERS_FILE))
+    {
+        printMessage("Server config not present <server.conf>.");
+        return -1;   
+    }
+    ifstream ifile = ifstream(SERVERS_FILE);
+    while(!ifile.eof())
+    {
+        ifile.getline(str, 256); 
+        const string s = str;
+        if(regexMatcher(str, IP_PORT_REGEX))
+        {
+            regex reg(IP_PORT_GROUP);
+            smatch match;
+            if(regex_search(s.begin(), s.end(), match, reg))
+            {
+                addServer(match[1].str().c_str(), atoi(match[2].str().c_str()));
+            }
+        }    
+        else
+        {
+            printMessage("IP read fail");
+        }    
+    }
+}
+
 int loadConfig()
 {
-    if(defaultConfig.size() < 4)
-        loadDefaultConfig();
-    if(!validateFile())
+    loadDefaultConfig();
+    if(!validateFile(CONFIG_FILE))
         return -1;
     parseConfig();
 }
@@ -71,7 +103,11 @@ int loadConfig()
 string getConfig(string configKey)
 {
     if(config.count(configKey) <=0)
-        return defaultConfig[configKey];
+        {
+            if(!defaultConfigLoaded)
+                loadDefaultConfig();
+            return defaultConfig[configKey];
+        }
     else
         return config[configKey];
 }
