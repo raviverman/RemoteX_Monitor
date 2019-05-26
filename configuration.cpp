@@ -65,6 +65,8 @@ int parseConfig()
 int readServerConfig()
 {
     char str[512];
+    int cnt = 0, error = 0;
+    char message[255];
     printMessage("Loading Server details..", true);
     if(!validateFile(SERVERS_FILE))
     {
@@ -83,13 +85,19 @@ int readServerConfig()
             if(regex_search(s.begin(), s.end(), match, reg))
             {
                 addServer(match[1].str().c_str(), atoi(match[2].str().c_str()));
+                cnt++;
             }
         }    
         else
         {
-            printMessage("IP read fail");
+            cnt++;
+            error++;
+            sprintf(message, "> IP read error - line: %d", cnt);
+            printMessage(message);
         }    
     }
+    sprintf(message, "Total IP imported : %d", cnt - error);
+    printMessage(message);
 }
 
 int loadConfig()

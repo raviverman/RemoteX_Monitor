@@ -18,6 +18,7 @@
 #include<unordered_map>
 #include<vector>
 #include<fcntl.h>
+#include<iomanip>
 
 #define PROCESS_STOPPED 0
 #define PROCESS_RUNNING 1
@@ -56,6 +57,11 @@ struct servers
 #define COMMAND_SHOW_STATUS "\\s*show\\s+status\\s*"
 #define COMMAND_EXEC_REGEX "\\s*exec\\s*\\d+\\s*\".*\""
 #define COMMAND_EXEC_GROUP "\\s*exec\\s*(\\d+)\\s*\"(.*)\""
+#define COMMAND_CLEAR "\\s*clr\\s*"
+#define COMMAND_CONNECT_REGEX "\\s*connect\\s+\\d+.*"
+#define COMMAND_CONNECT_GROUP "\\s*connect\\s+(\\d+).*"
+#define COMMAND_HELP "\\s*help\\s*"
+#define COMMAND_EXIT "\\s*exit\\s*"
 
 #define CLI_PROMPT "$ "
 
@@ -73,8 +79,8 @@ struct message
 struct response
 {
     bool isSuccess;
-    char error[256];
-    char resp[256];
+    char error[64];
+    char resp[436];
     bool isComplete;
     bool hasNext;
 };
@@ -100,8 +106,10 @@ int connectServer(int x);
 int connectServer(char* ip, int port);
 message* createMessage(int type, const char command[], bool isShellCmd, bool respond);
 int sendMessage(int serverNode, message* m);
+void* listenServer(void* args);
 
 // cli
 void printServers();
 void printMessage(char* message, bool onVerbose=false);
 int commandParser(char command[]);
+void printHelp();

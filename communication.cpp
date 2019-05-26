@@ -52,7 +52,11 @@ int connectServer(int x)
 {
     int ret;
     if((ret = connectServer(serverList[x]->ip, serverList[x]->port)) > 0)
-        serverList[x]->conn_state = CONN_STATE_CON;
+        {
+            serverList[x]->conn_state = CONN_STATE_CON;
+            pthread_t thread_id;
+            pthread_create(&thread_id, NULL, listenServer, &serverList[x]->socket);
+        }
     else
         serverList[x]->conn_state = CONN_STATE_ERR;
     serverList[x]->socket = ret;
@@ -83,6 +87,21 @@ message* createMessage(int type, const char command[], bool isShellCmd, bool res
     m->respond = respond;
     m->type = type;
     return m;
+}
+
+void* listenServer(void* args)
+{
+    int serverSocket = *((int*)args);
+    char buffer[512];
+    while(recv(serverSocket, buffer, sizeof(buffer), 0))
+    {
+        response *r = ((response*)malloc(sizeof(response)));
+        memcpy(r, buffer, sizeof(response));
+        if(r->isSuccess)
+        {
+            printMessage(r->resp, true);
+        }
+    }
 }
 
 int sendMessage(int serverNode, message* m)
